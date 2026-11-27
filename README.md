@@ -6,13 +6,9 @@ The scripts allow users to investigate the distribution of alleles across differ
 
 ## Scripts
 
-### 1. `allelic_heatmap.py` (v2.0.0)
+### 1. `allelic_heatmap.py` (v2.1.0)
 
-This script generates an **interactive heatmap of allelic diversity associated with a species phylogenetic tree**. Alleles are colored according to their distribution across user-defined groups (based on a selected metadata variable), allowing users to explore patterns of allelic conservation, sharing and group-specificity.
-
-The visualization can help identify unusual patterns of allele distribution across phylogenetic groups and highlight potential recombination events or horizontal gene transfer.
-
-In addition to the interactive heatmap, the script generates several complementary tables describing allele distribution, exclusivity and dominance across groups.
+This script generates an **interactive heatmap of allelic diversity associated with a species phylogenetic tree**. Alleles are colored according to their distribution across user-defined groups (based on a selected metadata variable), allowing users to explore patterns of allelic conservation, sharing and group-specificity. The visualization can help identify unusual patterns of allele distribution across phylogenetic groups and highlight potential recombination events or horizontal gene transfer. In addition to the interactive heatmap, the script generates several complementary tables describing allele distribution, exclusivity and dominance across groups.
 
 #### Input
 
@@ -27,7 +23,7 @@ Optionally, users can also provide:
 
 #### Main features
 
-**Allele classification and color assignment**
+**a. Allele classification and color assignment**
 
 For each locus, alleles are classified according to their distribution across the categories defined by the selected metadata variable (e.g. lineage).
 
@@ -41,33 +37,25 @@ Allele dominance can be determined using either:
 - **Frequency mode (default):** the proportion of isolates within each category carrying the allele.
 - **Count mode:** the absolute number of isolates within each category carrying the allele.
 
-**Tree visualization**
+**b. Tree visualization**
 
 Two additional options are available to improve tree visualization:
 
 - Display sample identifiers at the tree tips, using a user-defined font size.
 - Display the horizontal branch-length scale, with a user-defined tick-label font size.
   
-**Samples of interest**
+**c. Samples of interest**
 
-Users can optionally provide a list of samples of interest using `--sample_of_interest`.
-
-These samples are displayed alongside the remaining collection in the heatmap but are **excluded from all category-based calculations**, including allele frequency, allele counts and dominant-category assignment.
-
-This allows users to investigate specific isolates independently of the background population.
-
-Alleles found exclusively among the selected samples of interest are highlighted in purple by default:
+Users can optionally provide a list of samples of interest using `--sample_of_interest`. These samples are displayed alongside the remaining collection in the heatmap but are **excluded from all category-based calculations**, including allele frequency, allele counts and dominant-category assignment. This allows users to investigate specific isolates independently of the background population. Alleles found exclusively among the selected samples of interest are highlighted in purple by default:
 
 - Alleles found in multiple samples of interest are classified as `exclusive (group sample_of_interest)`.
 - Alleles found in a single sample of interest are classified as `exclusive (this sample_of_interest)`.
 
 The default purple color can be customized through the color configuration file.
 
-**Customizable colors**
+**d. Customizable colors**
 
-Colors can either be assigned automatically or specified by the user through a TSV configuration file.
-
-When colors are automatically generated, the script saves the corresponding configuration to `<output_prefix>_colors.tsv`, allowing users to reuse the same colors in subsequent analyses.
+Colors can either be assigned automatically or specified by the user through a TSV configuration file. When colors are automatically generated, the script saves the corresponding configuration to `<output_prefix>_colors.tsv`, allowing users to reuse the same colors in subsequent analyses.
 
 #### Output
 
@@ -101,30 +89,28 @@ python allelic_heatmap.py -h
 Available arguments:
 
 ```text
--h, --help
-    Show this help message and exit.
-
+  -h, --help            show this help message and exit
   -a ALLELIC_MATRIX, --allelic_matrix ALLELIC_MATRIX
                         Allelic matrix in TSV format.
   -m METADATA, --metadata METADATA
                         Metadata table in TSV format.
   -c COLORS, --colors COLORS
                         (Optional) TSV file indicating the colors to use in the heatmap. This file should contain the following columns in the header:
-                        'column' (indicating the name of the metadata column to use for categories), 'category' (indicating the different categories
-                        observed in the specified metadata column) and color (indicating the color code to use for the category). In case you specify '--
-                        sample_of_interest', you can also indicate the color you want to use for alleles exclusive of samples of interest. If this
-                        argument is omitted, colors are auto-assigned and saved to <prefix>_colors.tsv.
+                        'category' (indicating the different categories observed in the specified metadata column) and color (indicating the color code to
+                        use for the category). If '--sample_of_interest' is provided, this file should also include a row where 'category' corresponds to
+                        the expression 'sample_of_interst' and 'color' should indicate the color code for alleles exclusively observed in samples of
+                        interest. If this file is not provided colors are auto-assigned and saved to <prefix>_colors.tsv.
   -hcol HEADER, --header HEADER
                         Metadata column to use for categories.
   -t TREE, --tree TREE  Newick tree file.
   -o OUTPUT, --output_prefix OUTPUT
                         Output prefix.
   -mode {frequency,count}, --mode {frequency,count}
-                        Dominant category mode: 'frequency' (default) or 'count'
+                        Dominant category mode: 'frequency' (default) or 'count'.
   -ncat NCAT, --ncat NCAT
-                        Optional: if an allele is present in at least N categories, color it gray (nearly conserved).
+                        Optional: if an allele is present in at least N categories, color it grey (nearly conserved).
   -ncat_dominant NCAT_DOMINANT, --ncat_dominant NCAT_DOMINANT
-                        Optional: if an allele is dominant in at least N categories, color it gray (nearly conserved)
+                        Optional: if an allele is dominant in at least N categories, color it grey (nearly conserved).
   --sample_of_interest SAMPLE_OF_INTEREST
                         [OPTIONAL] TSV or TXT file with the list of samples of interest. Sample IDs must be in the first column and no headers should be
                         provided.
@@ -138,9 +124,7 @@ Available arguments:
 
 ### 2. `allelic_distribution.py`
 
-This script provides a complementary approach to exploring allelic diversity by quantifying the proportion of isolates within each group that carry a given allele.
-
-Unlike `allelic_heatmap.py`, this script focuses on the **quantitative distribution of alleles across user-defined groups**, allowing users to identify differences in allele prevalence between lineages or other metadata categories.
+This script provides a complementary approach to exploring allelic diversity by quantifying the proportion of isolates within each group that carry a given allele. Unlike `allelic_heatmap.py`, this script focuses on the **quantitative distribution of alleles across user-defined groups**, allowing users to identify differences in allele prevalence between lineages or other metadata categories.
 
 #### Input
 
@@ -150,7 +134,6 @@ Unlike `allelic_heatmap.py`, this script focuses on the **quantitative distribut
 #### Output
 
 - **`<output_prefix>_summary.tsv`** – Table in which each row corresponds to an allele and each column to a group of samples (defined by the selected metadata variable). Values indicate the proportion of isolates within each group carrying the corresponding allele.
-
 - **`<output_prefix>_distribution.tsv`** – Table in which each row corresponds to a locus and each column to a group, describing the allelic distribution within each group.
 
 #### Usage
@@ -189,7 +172,6 @@ Available arguments:
 ## Input file requirements
 
 For both scripts, the following requirements should be met:
-
 - Sample identifiers must match between the allelic matrix and metadata table.
 - Sample identifiers in the phylogenetic tree must match those in the allelic matrix.
 - The first column of both the allelic matrix and metadata table must contain sample identifiers.
@@ -206,9 +188,7 @@ The following examples use the *Chlamydia trachomatis* dataset provided in that 
 
 ### 1. Generate an allelic heatmap ordered according to a species phylogenetic tree
 
-The following command generates an interactive heatmap in which alleles are colored according to the lineage in which they are dominant, determined using allele frequency.
-
-Alleles present in at least three lineages are highlighted in black.
+The following command generates an interactive heatmap in which alleles are colored according to the lineage in which they are dominant, determined using allele frequency. Alleles present in at least three lineages are highlighted in black.
 
 ```bash
 python allelic_heatmap.py \
@@ -306,9 +286,7 @@ python allelic_distribution.py -h
 
 If you use any of these scripts, please cite:
 
-Zohra Lodhia, Verónica Mixão, Joana Isidro, Rita Ferreira, Dora Cordeiro, Cristina Correia, Inês João, João Paulo Gomes, Maria José Borrego and Vítor Borges (2025). *Advancing Chlamydia trachomatis genomic surveillance and research with a novel core-genome MLST (cgMLST) approach*. Research Square.
-
-[https://doi.org/10.21203/rs.3.rs-7743240/v1](https://www.researchsquare.com/article/rs-7743240/v1)
+[Lodhia, Z., Mixão, V., Isidro, J. et al. A new core-genome MLST approach for Chlamydia trachomatis genomic surveillance and research. Nat Commun 17, 9228 (2026). https://doi.org/10.1038/s41467-026-77098-8](https://www.nature.com/articles/s41467-026-77098-8)
 
 ---
 
