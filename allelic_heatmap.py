@@ -3,7 +3,7 @@
 """
 This script can be used to generate a heatmap with the cg/wgMLST alleles distribution across a species tree
 
-By Vitor Borges
+By Vitor Borges and Veronica Mixao
 @INSA
 """
 
@@ -19,8 +19,8 @@ import plotly.graph_objects as go
 
 pd.set_option('future.no_silent_downcasting', True)
 
-version = "2.0.0"
-last_updated = "2026-11-26"
+version = "2.1.0"
+last_updated = "2026-11-27"
 
 SAMPLE_INTEREST_COLOR = "#800080"
 
@@ -160,7 +160,7 @@ def assign_colors(allelic_matrix, metadata, meta_col, color_map, mode="frequency
                         shared[(locus, allele)] = sorted(category_set)
 
                     if ncat is not None and len(category_set) >= ncat:
-                        allele_to_color[(locus, allele)] = "#000000"
+                        allele_to_color[(locus, allele)] = "#696969"
 
                     if ncat_dominant is not None:
                         dominant_count = 0
@@ -176,7 +176,7 @@ def assign_colors(allelic_matrix, metadata, meta_col, color_map, mode="frequency
                             if allele_counts.idxmax() == allele:
                                 dominant_count += 1
                         if dominant_count >= ncat_dominant:
-                            allele_to_color[(locus, allele)] = "#000000"
+                            allele_to_color[(locus, allele)] = "#696969"
 
                 # CASE 2: Allele occurs ONLY in samples of interest
                 else:
@@ -508,17 +508,18 @@ def save_summary(log, exclusives,shared,sample_interest_exclusives,allele_to_cat
 
     print_log(f"\t[OK] Allele summary counts saved to {out2}", log)
 
-def save_auto_colors_tsv(log, color_map, output_prefix, meta_col, sample_interest_color=SAMPLE_INTEREST_COLOR):
+def save_auto_colors_tsv(log, sample_of_interest, color_map, output_prefix, sample_interest_color=SAMPLE_INTEREST_COLOR):
 
     rows = []
 
     for cat, color in color_map.items():
-        rows.append([meta_col, cat, color])
+        rows.append([cat, color])
 
     # Add the special sample_of_interest colour
-    rows.append([meta_col, "sample_of_interest", sample_interest_color])
+    if len(sample_of_interest) > 0:
+        rows.append(["sample_of_interest", sample_interest_color])
 
-    df = pd.DataFrame(rows, columns=["column", "category", "color"])
+    df = pd.DataFrame(rows, columns=["category", "color"])
 
     out = f"{output_prefix}_colors.tsv"
     df.to_csv(out, sep="\t", index=False)
@@ -624,22 +625,22 @@ def main():
     parser = argparse.ArgumentParser(description=("Fast allelic heatmap ordered by tree"))
     parser.add_argument("-a", "--allelic_matrix", required=True, help="Allelic matrix in TSV format.")
     parser.add_argument("-m", "--metadata", required=True, help="Metadata table in TSV format.")
-    parser.add_argument("-c", "--colors", required=False, help="(Optional) TSV file indicating the colors to use in the heatmap. This file should contain the following columns in the header: 'column' (indicating the name of \
-                        the metadata column to use for categories), 'category' (indicating the different categories observed in the specified metadata column) and color (indicating the color code to use for the category). \
-                        In case you specify '--sample_of_interest', you must also indicate the color you want to use for alleles exclusive of samples of interest. If this argument is omitted, colors are auto-assigned and \
-                        saved to <prefix>_colors.tsv.")
+    parser.add_argument("-c", "--colors", required=False, help="(Optional) TSV file indicating the colors to use in the heatmap. This file should contain the following columns in the header: 'category' (indicating the \
+                        different categories observed in the specified metadata column) and color (indicating the color code to use for the category). If '--sample_of_interest' is provided, this file should also include \
+                        a row where 'category' corresponds to the expression 'sample_of_interst' and 'color' should indicate the color code for alleles exclusively observed in samples of interest. If this file is not provided \
+                        colors are auto-assigned and saved to <prefix>_colors.tsv.")
     parser.add_argument("-hcol", "--header", required=True, help="Metadata column to use for categories.")
     parser.add_argument("-t", "--tree", required=True, help="Newick tree file.")
     parser.add_argument("-o", "--output_prefix", dest="output", required=True, help="Output prefix.")
-    parser.add_argument("-mode", "--mode", choices=["frequency", "count"], default="frequency", help="Dominant category mode: 'frequency' (default) or 'count'")
-    parser.add_argument("-ncat", "--ncat", type=int, default=None, help="Optional: if an allele is present in at least N categories, color it gray (nearly conserved).")
-    parser.add_argument("-ncat_dominant", "--ncat_dominant", type=int, default=None, help="Optional: if an allele is dominant in at least N categories, color it gray (nearly conserved)")
+    parser.add_argument("-mode", "--mode", choices=["frequency", "count"], default="frequency", help="Dominant category mode: 'frequency' (default) or 'count'.")
+    parser.add_argument("-ncat", "--ncat", type=int, default=None, help="Optional: if an allele is present in at least N categories, color it grey (nearly conserved).")
+    parser.add_argument("-ncat_dominant", "--ncat_dominant", type=int, default=None, help="Optional: if an allele is dominant in at least N categories, color it grey (nearly conserved).")
     parser.add_argument("--sample_of_interest", required=False, help="[OPTIONAL] TSV or TXT file with the list of samples of interest. Sample IDs must be in the first column and no headers should be provided.")
     parser.add_argument("--tree-labels", type=float, default=None, metavar="SIZE", help="[OPTIONAL] Show sample names at the tree tips. SIZE is the font size in points (e.g. 6).")
     parser.add_argument("--tree-scale", type=float, default=None, metavar="SIZE", help="[OPTIONAL] Show the horizontal tree branch-length scale " "at the bottom. SIZE is the tick-label font size in points " "(e.g. 8).")
-
+   
     args = parser.parse_args()
-
+    
     log_name = args.output + ".log"
     log = open(log_name, "w+")
 
@@ -662,7 +663,7 @@ def main():
         if missing_soi:
             print_log("\t[WARNING] The following samples " "of interest were not found in " "the allelic matrix and will be ignored:", log)
             for sample in sorted(missing_soi):
-                print_log(f"\t\t  {sample}", log)
+                print_log(f"\t\t  {sample}", log)        
         sample_of_interest = (sample_of_interest_present)
         print_log(f"\t[INFO] Samples of interest: " f"{len(sample_of_interest)}", log)
     else:
@@ -674,29 +675,18 @@ def main():
         print_log("\nColors provided...", log)
 
         colors_df = pd.read_csv(args.colors, sep="\t", dtype=str)
-        csub = colors_df[colors_df["column"] == args.header]
-
-        if csub.empty:
-            raise ValueError(
-                f"No colors found in {args.colors} for column '{args.header}'."
-            )
 
         # Read the special sample_of_interest colour separately.
-        soi_rows = csub[csub["category"] == "sample_of_interest"]
-
-        if not soi_rows.empty:
-            sample_interest_color = soi_rows.iloc[0]["color"]
+        if len(sample_of_interest) > 0 and "sample_of_interest" in colors_df["category"].values:
+            sample_interest_color = colors_df.loc[colors_df["category"] == "sample_of_interest", "color"].iloc[0]
         elif sample_of_interest:
-            raise ValueError(
-                "Your colours file must contain a row with "
-                "category='sample_of_interest' for the selected metadata column."
-            )
+            sys.exit("\nAs you provided the '--sample_of_interest' argument and indicated a '--colors' file, the colors file must contain a row where 'category'='sample_of_interest' and 'color'='color code you want for alleles exclusive of samples of interest'.")
 
         # sample_of_interest is NOT a metadata category.
         # Therefore, exclude it from the ordinary category colour map.
         color_map = {
             row["category"]: row["color"]
-            for _, row in csub.iterrows()
+            for _, row in colors_df.iterrows()
             if row["category"] != "sample_of_interest"
         }
 
@@ -713,9 +703,9 @@ def main():
 
         save_auto_colors_tsv(
             log,
+            sample_of_interest,
             color_map,
             args.output,
-            args.header,
             sample_interest_color
         )
 
